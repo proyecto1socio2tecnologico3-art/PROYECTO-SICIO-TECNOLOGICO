@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma Educativa del Liceo Bolivariano Rafael María Urrecheaga</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div id="dbStatus" class="db-status" role="alert" hidden></div>
+    <div id="accessGate" class="access-gate" role="dialog" aria-modal="true" aria-labelledby="accessGateTitle">
+        <form class="access-gate-card" onsubmit="event.preventDefault(); verificarCodigoIngreso();">
+            <h2 id="accessGateTitle">Acceso exclusivo</h2>
+            <p>Ingresa el código general para entrar a la Plataforma Educativa del Liceo Bolivariano Rafael María Urrecheaga.</p>
+            <label for="platformAccessCode">Código de acceso general:</label>
+            <input id="platformAccessCode" type="password" autocomplete="current-password" maxlength="128" required autofocus>
+            <button type="submit" class="btn-submit">Continuar</button>
+            <p id="accessCodeMessage" class="access-code-message" role="status" aria-live="polite"></p>
+        </form>
+    </div>
+    <header>
+        <h1>Plataforma Educativa del Liceo Bolivariano Rafael María Urrecheaga</h1>
+        <p>Construyendo y aprendiendo el futuro</p>
+    </header>
+
+    <nav>
+        <div class="nav-links">
+            <a id="libraryHomeLink" class="hidden" href="#" onclick="event.preventDefault(); volverABiblioteca()">← Volver a Biblioteca Principal</a>
+        </div>
+        <div class="header-actions">
+            <button class="btn-solicitud-header" onclick="abrirModalSolicitud()">Solicitud de Admin</button>
+            <button class="btn-docente-header" onclick="abrirModalAdmin()">Acceso Docente</button>
+            <div class="user-status" id="userStatus">No has iniciado sesión</div>
+        </div>
+    </nav>
+
+    <!-- Modal Admin (Ingreso Docente / Admin Menor) -->
+    <div id="adminModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 style="color: var(--admin-color); margin-top:0; border-bottom: 3px solid var(--admin-color); padding-bottom:8px;">Acceso Docente / Admin</h2>
+            <div class="form-group">
+                <label>Usuario Administrador:</label>
+                <input type="text" id="adminUser" placeholder="admin_master o tu usuario asignado">
+            </div>
+            <div class="form-group">
+                <label>Contraseña de Seguridad:</label>
+                <input type="password" id="adminPass" placeholder="••••••••">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" onclick="iniciarSesionAdmin()" class="btn-submit btn-admin-submit" style="flex: 2;">Entrar</button>
+                <button type="button" onclick="cerrarModalAdmin()" class="btn-submit" style="background-color: #95a5a6; flex: 1;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Solicitud de Admin -->
+    <div id="solicitudModal" class="modal-overlay hidden">
+        <div class="modal-content" style="border: 3px dashed var(--admin-color);">
+            <h2 style="color: var(--admin-color); margin-top:0;">Postulación para Admin</h2>
+            <div class="form-group">
+                <label>Nombre Completo:</label>
+                <input type="text" id="solName" placeholder="Tu nombre completo">
+            </div>
+            <div class="form-group">
+                <label>Usuario Deseado:</label>
+                <input type="text" id="solUser" placeholder="Ej: prof_martinez">
+            </div>
+            <div class="form-group">
+                <label>Contraseña:</label>
+                <input type="password" id="solPass" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="128">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" onclick="solicitarAccesoAdmin()" class="btn-submit btn-admin-submit" style="flex: 2;">Enviar Solicitud</button>
+                <button type="button" onclick="cerrarModalSolicitud()" class="btn-submit" style="background-color: #95a5a6; flex: 1;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE ASIGNACIÓN VISUAL DE CAMPO LIBRE (ESTILO CUESTIONARIO) -->
+    <div id="asignarCampoModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <h2 style="color: var(--admin-color); margin-top:0;">Asignar Campo a Admin Menor</h2>
+            <p style="font-size: 0.9rem; color: #555;">Selecciona el campo o materia disponible que administrará <strong id="asigModalNombre"></strong>:</p>
+            
+            <p>Selecciona hasta 3 campos o materias para este administrador.</p>
+            <div id="camposLibresRadioContainer" style="margin: 15px 0;"></div>
+
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button type="button" onclick="confirmarAsignacionCampo()" class="btn-submit btn-admin-submit" style="flex: 2;">Confirmar Asignación</button>
+                <button type="button" onclick="cerrarModalAsignacion()" class="btn-submit" style="background-color: #95a5a6; flex: 1;">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        
+        <!-- Formulario de Autenticación Unificado -->
+        <div id="authSection" class="auth-container">
+            <div class="auth-card" id="cardRegistro">
+                <h2>¿Eres Nuevo? Regístrate</h2>
+                <div class="form-group">
+                    <label>Nombre Completo:</label>
+                    <input type="text" id="regName" placeholder="Ej: Valentina López">
+                </div>
+                <div class="form-group">
+                    <label>Año Escolar:</label>
+                    <select id="regGrade">
+                        <option value="1er Año">1.º Año</option>
+                        <option value="2do Año">2.º Año</option>
+                        <option value="3er Año">3.er Año</option>
+                        <option value="4to Año">4.º Año</option>
+                        <option value="5to Año">5.º Año</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" id="regPass" placeholder="Mínimo 8 caracteres" minlength="8" maxlength="128">
+                </div>
+                <button type="button" onclick="registrarUsuarioNuevo()" class="btn-submit">Crear Cuenta e Ingresar</button>
+                <div class="auth-switch-text">
+                    ¿Ya tienes cuenta? <a onclick="cambiarVistaAuth('login')">Inicia sesión aquí</a>
+                </div>
+            </div>
+
+            <div class="auth-card hidden" id="cardLogin">
+                <h2>Ingreso de Estudiantes</h2>
+                <div class="form-group">
+                    <label>Nombre Completo:</label>
+                    <input type="text" id="loginName" placeholder="Tu Nombre Completo registrado">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" id="loginPass" placeholder="••••••••" maxlength="128">
+                </div>
+                <button type="button" onclick="iniciarSesionEstudiante()" class="btn-submit">Entrar a mi Taller</button>
+                <div class="auth-switch-text">
+                    ¿Eres nuevo? <a onclick="cambiarVistaAuth('registro')">Regístrate aquí</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Área Principal -->
+        <div id="mainContent" class="hidden">
+            
+            <h2 id="adminDashboardTitle" class="hidden" style="color: var(--admin-color);">Panel general de administración</h2>
+            <section id="adminFieldSelector" class="info-section hidden">
+                <h2>Selecciona un campo para administrar</h2>
+                <div id="adminAssignedFieldsGrid" class="info-grid"></div>
+            </section>
+
+            <!-- Panel de Progreso Estudiantil -->
+            <div class="progress-box" id="studentProgressBox">
+                <h2>Panel de Control de <span id="studentName">Estudiante</span> (<span id="studentGradeText">1er Año</span>)</h2>
+                <p>Progreso Global en Actividades, Cuestionarios y Lecturas:</p>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <strong id="progressText">Tu Progreso General: 0% Completado</strong>
+            </div>
+
+            <!-- PANEL GENERAL DE ADMINISTRACIÓN (ÚNICAMENTE EN INTERFAZ PRINCIPAL PARA SUPERADMIN) -->
+            <section id="superAdminRequestsSection" class="admin-panel-section hidden">
+                <h2 style="color: var(--admin-color); margin-top:0;">Solicitudes de Admins Menores Pendientes</h2>
+                <div id="requestsTableContainer"></div>
+
+                <h3 style="color: var(--admin-color); margin-top:25px;">Estado de Campos y Asignación de Administradores</h3>
+                <div id="adminCamposStatusContainer"></div>
+
+                <h3 style="color: var(--admin-color); margin-top:25px;">Lista de Administradores Registrados</h3>
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Usuario</th>
+                            <th>Rol / Campo Asignado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminsTableBody"></tbody>
+                </table>
+            </section>
+
+            <!-- Panel Admin Principal: Crear / Editar Campo Didáctico Principal (Únicamente en Interfaz Principal) -->
+            <div id="adminPanelSection" class="admin-panel-section hidden">
+                <h2 id="adminFormTitle" style="color: var(--admin-color); margin-top:0;">Crear / Editar Campo Didáctico</h2>
+                <input type="hidden" id="editIndex" value="-1">
+                <div class="form-group">
+                    <label>Categoría del Campo:</label>
+                    <select id="cardCategoryInput" onchange="actualizarFormularioCampo()">
+                        <option value="avanzados">Áreas de Formación Avanzada</option>
+                        <option value="generales">Áreas de Formación General</option>
+                        <option value="grados">Áreas Curriculares por Grado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Título del Campo:</label>
+                    <input type="text" id="cardTitleInput" placeholder="Ej: Ingeniería Civil o 1er Año">
+                </div>
+                <div class="form-group">
+                    <label>Resumen Breve:</label>
+                    <input type="text" id="cardResumenInput" placeholder="Breve descripción para la tarjeta...">
+                </div>
+                <div class="form-group" id="cardContentGroup">
+                    <label>Contenido Teórico Principal:</label>
+                    <textarea id="cardContentInput" rows="3" placeholder="Información teórica detallada..."></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" onclick="guardarCampo()" class="btn-submit btn-admin-submit" style="flex: 2;">Guardar Campo</button>
+                    <button type="button" onclick="cancelarEdicion()" class="btn-submit" style="background-color: #95a5a6; flex: 1;">Cancelar</button>
+                </div>
+            </div>
+
+            <!-- Biblioteca Principal de Campos -->
+            <section class="info-section" id="bibliotecaSection">
+                <h2>Biblioteca Didáctica de Campos</h2>
+                <div class="section-tabs">
+                    <button class="tab-btn active" onclick="cambiarPestanaBiblioteca('avanzados')">Áreas de Formación Avanzada</button>
+                    <button class="tab-btn" onclick="cambiarPestanaBiblioteca('generales')">Áreas de Formación General</button>
+                    <button class="tab-btn" onclick="cambiarPestanaBiblioteca('grados')">Áreas Curriculares por Grado</button>
+                </div>
+                <p>Selecciona un Campo para acceder a sus lecciones, cuestionarios, artículos y enlaces:</p>
+                <div class="info-grid" id="infoGridContainer"></div>
+            </section>
+
+            <!-- VISTA INTERNA DEL CAMPO / MATERIA (TOTALMENTE AISLADA DE HERRAMIENTAS GENERALES) -->
+            <section class="campo-view-section hidden" id="campoViewSection">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                    <h2 id="campoTitle" style="color: var(--dark-blue); font-size: 2rem; margin-top:0;">Título del Campo</h2>
+                    <div id="campoProgressBadge" style="background: var(--success); color: white; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">
+                        Progreso del Campo: 0%
+                    </div>
+                </div>
+                
+                <!-- Contenido Principal Teórico -->
+                <div id="campoBodyText" class="article-paragraph" style="background: #fdfefe; padding: 18px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 20px;"></div>
+
+                <!-- Sub-biblioteca de Materias (si es Campo de Grado) -->
+                <div id="subMateriasContainer" class="hidden" style="margin-bottom: 25px;">
+                    <h3 style="color: var(--dark-blue); border-bottom: 2px solid var(--secondary); padding-bottom: 6px;">Materias de este Año Escolar</h3>
+                    <div id="subMateriasGrid" class="info-grid"></div>
+                </div>
+
+                <!-- Crear materias es la única herramienta disponible en el contenedor de grado. -->
+                <div id="adminGradeTools" class="admin-panel-section hidden" style="margin-bottom: 25px;">
+                    <h3 style="margin-top:0; color: var(--admin-color);">Materias de este grado</h3>
+                    <div class="form-group"><input type="text" id="subMatTitle" placeholder="Nombre de la Materia (Ej: Matemáticas)"></div>
+                    <div class="form-group"><input type="text" id="subMatResumen" placeholder="Resumen corto..."></div>
+                    <button type="button" onclick="agregarSubMateria()" class="btn-submit btn-admin-submit" style="width: auto;">+ Crear Materia</button>
+                </div>
+
+                <!-- HERRAMIENTAS EXCLUSIVAS PARA AGREGAR CONTENIDO A ESTE CAMPO ESPECÍFICO -->
+                <div id="adminCampoTools" class="admin-panel-section hidden" style="margin-bottom: 25px;">
+                    <h3 style="margin-top:0; color: var(--admin-color);">Herramientas de Contenido para este Campo</h3>
+
+                    <div class="form-group">
+                        <label>Contenido teórico de esta materia o campo:</label>
+                        <textarea id="contentInput" rows="4" placeholder="Escribe el contenido teórico..."></textarea>
+                        <button type="button" onclick="guardarContenidoTeorico()" class="btn-submit btn-admin-submit" style="width: auto; margin-top: 8px;">Guardar contenido teórico</button>
+                    </div>
+
+                    <!-- Cuestionario con Intentos -->
+                    <div style="background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 12px;">
+                        <h4>Agregar Cuestionario Evaluativo</h4>
+                        <div class="form-group">
+                            <label>Pregunta (máximo 300 caracteres):</label>
+                            <textarea id="qInputPregunta" rows="2" maxlength="300" oninput="actualizarConteosCuestionario()" placeholder="Escribe la pregunta aquí..."></textarea>
+                            <small id="quizQuestionCount">0 de 300 caracteres</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Opción 1 (máximo 80 caracteres):</label>
+                            <textarea id="qInputOpt1" rows="1" maxlength="80" oninput="actualizarConteosCuestionario()" placeholder="Texto opción 1"></textarea>
+                            <small id="quizOption1Count">0 de 80 caracteres</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Opción 2 (máximo 80 caracteres):</label>
+                            <textarea id="qInputOpt2" rows="1" maxlength="80" oninput="actualizarConteosCuestionario()" placeholder="Texto opción 2"></textarea>
+                            <small id="quizOption2Count">0 de 80 caracteres</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Opción 3 (máximo 80 caracteres):</label>
+                            <textarea id="qInputOpt3" rows="1" maxlength="80" oninput="actualizarConteosCuestionario()" placeholder="Texto opción 3"></textarea>
+                            <small id="quizOption3Count">0 de 80 caracteres</small>
+                        </div>
+                        <p id="quizLimitStatus" aria-live="polite">0 de 20 cuestionarios</p>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <div class="form-group" style="flex:1; min-width:150px;">
+                                <label>Opción Correcta:</label>
+                                <select id="qInputCorrect"><option value="1">Opción 1</option><option value="2">Opción 2</option><option value="3">Opción 3</option></select>
+                            </div>
+                            <div class="form-group" style="flex:1; min-width:150px;">
+                                <label>Límite de Intentos:</label>
+                                <select id="qInputIntentos">
+                                    <option value="1">1 Intento</option>
+                                    <option value="2">2 Intentos</option>
+                                    <option value="3">3 Intentos</option>
+                                    <option value="indefinidos" selected>Intentos Indefinidos</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="addQuizButton" type="button" onclick="agregarCuestionarioACampo()" class="btn-submit" style="background-color: var(--success); width: auto;">+ Guardar Cuestionario</button>
+                    </div>
+
+                    <!-- Artículo con Texto Continuo (Sintaxis **Texto** para Negritas/Subtítulos) -->
+                    <div style="background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 12px;">
+                        <h4>Agregar Artículo de Lectura</h4>
+                        <div class="form-group">
+                            <label>Título del Artículo:</label>
+                            <input type="text" id="artInputTitleMain" placeholder="Ej: Introducción a los Circuitos">
+                        </div>
+                        <div class="form-group">
+                            <label>Cuerpo del Artículo (máximo 5000 palabras; usa **Texto** para destacar en negrita):</label>
+                            <textarea id="artInputTextoContinuo" rows="6" oninput="actualizarConteoPalabrasArticulo()" placeholder="Escribe tu artículo aquí... Puedes colocar **Subtítulo o Negrita** sencillamente rodeando la palabra con dos asteriscos."></textarea>
+                            <small id="articleWordCount" aria-live="polite">0 de 5000 palabras</small>
+                        </div>
+                        <p id="articleLimitStatus" aria-live="polite">0 de 1 artículo</p>
+                        <button id="publishArticleButton" type="button" onclick="publicarArticuloEstructurado()" class="btn-submit" style="background-color: var(--dark-blue); width: auto;">+ Publicar Artículo</button>
+                    </div>
+
+                    <div style="background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 12px;">
+                        <h4>Agregar sitio web de apoyo</h4>
+                        <div class="form-group">
+                            <label>Nombre del recurso:</label>
+                            <input type="text" id="websiteTitleInput" placeholder="Ej: Simulador de circuitos">
+                        </div>
+                        <div class="form-group">
+                            <label>Enlace (URL):</label>
+                            <input type="url" id="websiteUrlInput" placeholder="https://ejemplo.com/recurso">
+                        </div>
+                        <p id="websiteLimitStatus" aria-live="polite">0 de 20 enlaces usados</p>
+                        <button id="addWebsiteButton" type="button" onclick="agregarSitioWebACampo()" class="btn-submit" style="background-color: var(--secondary); width: auto;">+ Agregar enlace</button>
+                    </div>
+                </div>
+
+                <!-- Contenedores de actividades; se ocultan en el contenedor de grado. -->
+                <div id="campoContentSections">
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: var(--dark-blue); border-bottom: 2px solid var(--secondary); padding-bottom: 6px;">Cuestionarios Evaluativos</h3>
+                    <div id="campoQuizzesContainer"></div>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: var(--dark-blue); border-bottom: 2px solid var(--secondary); padding-bottom: 6px;">Artículos e Hilos de Lectura</h3>
+                    <div id="campoArticlesContainer"></div>
+                </div>
+
+                <div id="campoWebsitesSection" style="margin-bottom: 25px;">
+                    <h3 style="color: var(--dark-blue); border-bottom: 2px solid var(--secondary); padding-bottom: 6px;">Sitios web recomendados</h3>
+                    <div id="campoWebsitesContainer"></div>
+                </div>
+
+                </div>
+            </section>
+
+            <!-- DIRECTORIO DE USUARIOS ESTUDIANTILES (ÚNICAMENTE EN INTERFAZ PRINCIPAL PARA SUPERADMIN) -->
+            <section id="adminUsersSection" class="admin-panel-section hidden" style="margin-top: 30px;">
+                <h2 style="color: var(--admin-color); margin-top:0;">Padrón Estudiantil</h2>
+                <p id="studentTableSubtext">Listado global de estudiantes registrados:</p>
+                <div class="admin-table-filters">
+                    <input type="search" id="userSearchInput" class="search-bar" placeholder="Buscar por nombre o año escolar..." oninput="filtrarTablaUsuarios()">
+                    <select id="userGradeFilter" aria-label="Filtrar por año escolar" onchange="filtrarTablaUsuarios()">
+                        <option value="">Todos los años escolares</option>
+                    </select>
+                    <select id="userProgressScope" aria-label="Seleccionar progreso que se muestra" onchange="cargarTablaUsuariosAdmin()">
+                        <option value="general">Progreso general</option>
+                    </select>
+                    <select id="userProgressFilter" aria-label="Filtrar por progreso" onchange="filtrarTablaUsuarios()">
+                        <option value="">Cualquier progreso</option>
+                        <option value="0-24">0–24%</option>
+                        <option value="25-49">25–49%</option>
+                        <option value="50-74">50–74%</option>
+                        <option value="75-99">75–99%</option>
+                        <option value="100">100%</option>
+                    </select>
+                </div>
+                <div class="admin-table-actions">
+                    <p id="userTableResults" aria-live="polite">Mostrando 0 de 0 estudiantes</p>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button type="button" id="resetFieldProgressButton" class="btn-submit" style="width:auto; background:var(--danger);" onclick="reiniciarProgresoCampo()" hidden>Reiniciar progreso del campo</button>
+                        <button type="button" class="btn-submit btn-admin-submit" style="width:auto;" onclick="exportarProgresoCSV()">Exportar resultados a CSV</button>
+                    </div>
+                </div>
+
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Estudiante (Nombre Completo)</th>
+                            <th>Año Escolar</th>
+                            <th id="userProgressHeading">Progreso General</th>
+                            <th>Acciones / Acceso</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody"></tbody>
+                </table>
+            </section>
+
+            <details id="adminSecuritySection" class="admin-security hidden">
+                <summary>Cambiar contraseña administrativa</summary>
+                <p>La contraseña nueva se usará en los próximos inicios de sesión. Puedes usar cualquier tipo de carácter.</p>
+                <div class="admin-password-fields">
+                    <div class="form-group">
+                        <label for="currentAdminPassword">Contraseña actual:</label>
+                        <input type="password" id="currentAdminPassword" autocomplete="current-password" maxlength="128">
+                    </div>
+                    <div class="form-group">
+                        <label for="newAdminPassword">Nueva contraseña (8 a 128 caracteres):</label>
+                        <input type="password" id="newAdminPassword" autocomplete="new-password" minlength="8" maxlength="128">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmAdminPassword">Confirmar nueva contraseña:</label>
+                        <input type="password" id="confirmAdminPassword" autocomplete="new-password" maxlength="128">
+                    </div>
+                </div>
+                <button type="button" onclick="cambiarContrasenaAdmin()" class="btn-submit btn-admin-submit" style="width:auto;">Actualizar contraseña</button>
+                <details id="platformAccessCodeSection" class="access-code-settings">
+                    <summary>Cambiar código general de acceso</summary>
+                    <p>Solo el Administrador Principal puede cambiarlo. Al guardar, todos deberán ingresar el código nuevo.</p>
+                    <div class="admin-password-fields">
+                        <div class="form-group">
+                            <label for="currentAccessCodeAdminPassword">Contraseña del Administrador Principal:</label>
+                            <input type="password" id="currentAccessCodeAdminPassword" autocomplete="current-password" maxlength="128">
+                        </div>
+                        <div class="form-group">
+                            <label for="newPlatformAccessCode">Código nuevo (6 a 128 caracteres):</label>
+                            <input type="password" id="newPlatformAccessCode" autocomplete="new-password" minlength="6" maxlength="128">
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPlatformAccessCode">Confirmar código nuevo:</label>
+                            <input type="password" id="confirmPlatformAccessCode" autocomplete="new-password" maxlength="128">
+                        </div>
+                    </div>
+                    <button type="button" onclick="cambiarCodigoIngreso()" class="btn-submit btn-admin-submit" style="width:auto;">Actualizar código general</button>
+                </details>
+            </details>
+
+        </div> 
+    </div> 
+
+    <script src="app.js" defer></script>
+</body>
+</html>

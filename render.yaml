@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: pequenos-ingenieros
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: DEPLOYMENT_ENV
+        value: production
+      - key: TIDB_HOST
+        sync: false
+      - key: TIDB_PORT
+        value: "4000"
+      - key: TIDB_USER
+        sync: false
+      - key: TIDB_PASSWORD
+        sync: false
+      - key: TIDB_DATABASE
+        sync: false
+      - key: SUPERADMIN_PASSWORD
+        sync: false
+      - key: PLATFORM_ACCESS_CODE
+        sync: false

@@ -938,7 +938,7 @@ const MAX_LINKS_PER_CONTENT = 20;
             container.innerHTML = html;
         }
 
-        function abrirModalAsignacionVisual(reqIdx) {
+    /*    function abrirModalAsignacionVisual(reqIdx) {
             solicitudIndexEnProceso = reqIdx;
             let reqs = obtenerSolicitudesBD();
             let req = reqs[reqIdx];
@@ -995,6 +995,57 @@ const MAX_LINKS_PER_CONTENT = 20;
             }
 
             document.getElementById('asignarCampoModal').classList.remove('hidden');
+        }*/
+
+         function abrirModalAsignacionVisual(reqIdx) {
+            solicitudIndexEnProceso = reqIdx;
+            let reqs = obtenerSolicitudesBD();
+            let req = reqs[reqIdx];
+
+            document.getElementById('asigModalNombre').innerText = req.nombre;
+
+            const camposBD = obtenerCamposBD();
+            let libres = [];
+
+            for (let cat in camposBD) {
+                camposBD[cat].forEach((c, cIdx) => {
+                    if (!c.adminAsignado) {
+                        libres.push({ cat, fieldId: c.id, subjectId: null, titulo: `[${cat.toUpperCase()}] ${c.titulo}` });
+                    }
+                    if (c.materias) {
+                        c.materias.forEach((m, mIdx) => {
+                            if (!m.adminAsignado) {
+                                libres.push({ cat, fieldId: c.id, subjectId: m.id, titulo: `[MATERIA DE ${c.titulo}] ${m.titulo}` });
+                            }
+                        });
+                    }
+                });
+            }
+
+            const container = document.getElementById('camposLibresRadioContainer');
+            container.innerHTML = '';
+
+            if (libres.length === 0) {
+                container.innerHTML = '<p style="color:var(--danger); font-weight:bold;">No hay campos libres disponibles en este momento. Todos están ocupados.</p>';
+            } else {
+                libres.forEach(op => {
+                    let label = document.createElement('label');
+                    label.className = 'campo-option-card';
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.name = 'campoLibreSel';
+                    input.value = JSON.stringify(op);
+                    const title = document.createElement('strong');
+                    title.textContent = op.titulo;
+                    const text = document.createElement('div');
+                    text.appendChild(title);
+                    label.append(input, text);
+                    container.appendChild(label);
+                });
+                
+            } //Correcion 1 eliminacion de limitede asignacion//
+
+            document.getElementById('asignarCampoModal').classList.remove('hidden');
         }
 
         function cerrarModalAsignacion() {
@@ -1004,10 +1055,10 @@ const MAX_LINKS_PER_CONTENT = 20;
 
         function confirmarAsignacionCampo() {
             const seleccionados = [...document.querySelectorAll('#camposLibresRadioContainer input[name="campoLibreSel"]:checked')];
-            if (seleccionados.length === 0 || seleccionados.length > 3) {
+            if (seleccionados.length === 0) {
                 alert('Selecciona entre 1 y 3 campos disponibles.');
                 return;
-            }
+            }//Correcion 2 eliminacion de limitede asignacion//
 
             let reqs = obtenerSolicitudesBD();
             let req = reqs[solicitudIndexEnProceso];
@@ -2117,7 +2168,7 @@ const MAX_LINKS_PER_CONTENT = 20;
             }
         }
 
-        function cargarTablaUsuariosAdmin() {
+      /*  function cargarTablaUsuariosAdmin() {
             const tbody = document.getElementById('userTableBody');
             tbody.innerHTML = '';
 
@@ -2164,7 +2215,68 @@ const MAX_LINKS_PER_CONTENT = 20;
             });
             filtrarTablaUsuarios();
             actualizarConteoTablaUsuarios();
-        }
+        }*/
+        function cargarTablaUsuariosAdmin() {
+            const tbody = document.getElementById('userTableBody');
+            tbody.innerHTML = '';
+
+            const usuarios = obtenerUsuariosBD();
+            const totalGeneral = obtenerTotalActividadesGeneral();
+            actualizarOpcionesProgresoAdmin();
+            
+            // FILTRO DE ESTUDIANTES SEGÚN ROL Y ASIGNACIÓN
+            let usuariosFiltrados = usuarios;
+            if (rolSesionActiva === 'admin_menor' && adminMenorDatos) {
+                const asignaciones = obtenerCamposAsignadosAdmin(adminMenorDatos);
+                const gradosAsignados = asignaciones.map(a => a.titulo.toLowerCase());
+                
+                usuariosFiltrados = usuarios.filter(usuario => {
+                    const gradoEstudiante = (usuario.grado || '').toLowerCase();
+                    return gradosAsignados.some(g => g.includes(gradoEstudiante) || gradoEstudiante.includes(g));
+                });
+            }
+
+            const ordenados = usuariosFiltrados
+                .map((usuario, indiceOriginal) => ({ usuario, indiceOriginal: usuarios.indexOf(usuario) }))
+                .sort((a, b) => a.usuario.nombre.localeCompare(b.usuario.nombre, 'es', { sensitivity: 'base' }));
+
+            actualizarOpcionesFiltroGrado(usuarios);
+            ordenados.forEach(({ usuario, indiceOriginal }) => {
+                const { completadas, porcentaje, totalActividades } = calcularProgresoAdmin(usuario, totalGeneral);
+                let tr = document.createElement('tr');
+                tr.className = 'user-row';
+                tr.dataset.userIndex = indiceOriginal;
+                tr.dataset.name = normalizarBusqueda(usuario.nombre);
+                tr.dataset.grade = normalizarBusqueda(usuario.grado || 'No asignado');
+                tr.dataset.progress = porcentaje;
+
+                const nombre = document.createElement('td');
+                const nombreNegrita = document.createElement('strong');
+                nombreNegrita.textContent = usuario.nombre;
+                nombre.appendChild(nombreNegrita);
+                const grado = document.createElement('td');
+                grado.textContent = usuario.grado || 'No asignado';
+                const progreso = document.createElement('td');
+                progreso.textContent = `${porcentaje}% (${completadas}/${totalActividades} actividades)`;
+                const acciones = document.createElement('td');
+                if (rolSesionActiva === 'superadmin') {
+                    const botonEliminar = document.createElement('button');
+                    botonEliminar.textContent = 'Eliminar Estudiante';
+                    botonEliminar.style.cssText = 'background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;';
+                    botonEliminar.addEventListener('click', () => eliminarEstudiante(indiceOriginal));
+                    acciones.appendChild(botonEliminar);
+                } else {
+                    const soloLectura = document.createElement('span');
+                    soloLectura.textContent = 'Solo lectura';
+                    soloLectura.style.cssText = 'color:#555; font-style:italic;';
+                    acciones.appendChild(soloLectura);
+                }
+                tr.append(nombre, grado, progreso, acciones);
+                tbody.appendChild(tr);
+            });
+            filtrarTablaUsuarios();
+            actualizarConteoTablaUsuarios();
+        } 
 
         function eliminarEstudiante(uIdx) {
             if (rolSesionActiva !== 'superadmin') {

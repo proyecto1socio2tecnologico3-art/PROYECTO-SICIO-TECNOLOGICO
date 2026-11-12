@@ -2110,54 +2110,7 @@ const MAX_LINKS_PER_CONTENT = 20;
             }
         }
 
-      /*  function cargarTablaUsuariosAdmin() {
-            const tbody = document.getElementById('userTableBody');
-            tbody.innerHTML = '';
-
-            const usuarios = obtenerUsuariosBD();
-            const totalGeneral = obtenerTotalActividadesGeneral();
-            actualizarOpcionesProgresoAdmin();
-            const ordenados = usuarios
-                .map((usuario, indiceOriginal) => ({ usuario, indiceOriginal }))
-                .sort((a, b) => a.usuario.nombre.localeCompare(b.usuario.nombre, 'es', { sensitivity: 'base' }));
-
-            actualizarOpcionesFiltroGrado(usuarios);
-            ordenados.forEach(({ usuario, indiceOriginal }) => {
-                const { completadas, porcentaje, totalActividades } = calcularProgresoAdmin(usuario, totalGeneral);
-                let tr = document.createElement('tr');
-                tr.className = 'user-row';
-                tr.dataset.userIndex = indiceOriginal;
-                tr.dataset.name = normalizarBusqueda(usuario.nombre);
-                tr.dataset.grade = normalizarBusqueda(usuario.grado || 'No asignado');
-                tr.dataset.progress = porcentaje;
-
-                const nombre = document.createElement('td');
-                const nombreNegrita = document.createElement('strong');
-                nombreNegrita.textContent = usuario.nombre;
-                nombre.appendChild(nombreNegrita);
-                const grado = document.createElement('td');
-                grado.textContent = usuario.grado || 'No asignado';
-                const progreso = document.createElement('td');
-                progreso.textContent = `${porcentaje}% (${completadas}/${totalActividades} actividades)`;
-                const acciones = document.createElement('td');
-                if (rolSesionActiva === 'superadmin') {
-                    const botonEliminar = document.createElement('button');
-                    botonEliminar.textContent = 'Eliminar Estudiante';
-                    botonEliminar.style.cssText = 'background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-weight:bold;';
-                    botonEliminar.addEventListener('click', () => eliminarEstudiante(indiceOriginal));
-                    acciones.appendChild(botonEliminar);
-                } else {
-                    const soloLectura = document.createElement('span');
-                    soloLectura.textContent = 'Solo lectura';
-                    soloLectura.style.cssText = 'color:#555; font-style:italic;';
-                    acciones.appendChild(soloLectura);
-                }
-                tr.append(nombre, grado, progreso, acciones);
-                tbody.appendChild(tr);
-            });
-            filtrarTablaUsuarios();
-            actualizarConteoTablaUsuarios();
-        }*/
+     
         function cargarTablaUsuariosAdmin() {
             const tbody = document.getElementById('userTableBody');
             tbody.innerHTML = '';

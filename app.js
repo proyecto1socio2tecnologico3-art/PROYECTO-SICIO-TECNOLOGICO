@@ -936,67 +936,9 @@ const MAX_LINKS_PER_CONTENT = 20;
 
             html += `</tbody></table>`;
             container.innerHTML = html;
-        }
-
-    /*    function abrirModalAsignacionVisual(reqIdx) {
-            solicitudIndexEnProceso = reqIdx;
-            let reqs = obtenerSolicitudesBD();
-            let req = reqs[reqIdx];
-
-            document.getElementById('asigModalNombre').innerText = req.nombre;
-
-            const camposBD = obtenerCamposBD();
-            let libres = [];
-
-            for (let cat in camposBD) {
-                camposBD[cat].forEach((c, cIdx) => {
-                    if (!c.adminAsignado) {
-                        libres.push({ cat, fieldId: c.id, subjectId: null, titulo: `[${cat.toUpperCase()}] ${c.titulo}` });
-                    }
-                    if (c.materias) {
-                        c.materias.forEach((m, mIdx) => {
-                            if (!m.adminAsignado) {
-                                libres.push({ cat, fieldId: c.id, subjectId: m.id, titulo: `[MATERIA DE ${c.titulo}] ${m.titulo}` });
-                            }
-                        });
-                    }
-                });
-            }
-
-            const container = document.getElementById('camposLibresRadioContainer');
-            container.innerHTML = '';
-
-            if (libres.length === 0) {
-                container.innerHTML = '<p style="color:var(--danger); font-weight:bold;">No hay campos libres disponibles en este momento. Todos están ocupados.</p>';
-            } else {
-                libres.forEach(op => {
-                    let label = document.createElement('label');
-                    label.className = 'campo-option-card';
-                    const input = document.createElement('input');
-                    input.type = 'checkbox';
-                    input.name = 'campoLibreSel';
-                    input.value = JSON.stringify(op);
-                    const title = document.createElement('strong');
-                    title.textContent = op.titulo;
-                    const text = document.createElement('div');
-                    text.appendChild(title);
-                    label.append(input, text);
-                    container.appendChild(label);
-                });
-                container.querySelectorAll('input[name="campoLibreSel"]').forEach(control => {
-                    control.addEventListener('change', () => {
-                        const seleccionados = [...container.querySelectorAll('input[name="campoLibreSel"]:checked')];
-                        if (seleccionados.length > 3) {
-                            control.checked = false;
-                            alert('Cada administrador puede tener como máximo 3 campos asignados.');
-                        }
-                    });
-                });
-            }
-
-            document.getElementById('asignarCampoModal').classList.remove('hidden');
-        }*/
-
+        }   
+                                
+                                
          function abrirModalAsignacionVisual(reqIdx) {
             solicitudIndexEnProceso = reqIdx;
             let reqs = obtenerSolicitudesBD();
@@ -1043,7 +985,7 @@ const MAX_LINKS_PER_CONTENT = 20;
                     container.appendChild(label);
                 });
                 
-            } //Correcion 1 eliminacion de limitede asignacion//
+            }
 
             document.getElementById('asignarCampoModal').classList.remove('hidden');
         }
@@ -1058,7 +1000,7 @@ const MAX_LINKS_PER_CONTENT = 20;
             if (seleccionados.length === 0) {
                 alert('Selecciona entre 1 y 3 campos disponibles.');
                 return;
-            }//Correcion 2 eliminacion de limitede asignacion//
+            }
 
             let reqs = obtenerSolicitudesBD();
             let req = reqs[solicitudIndexEnProceso];

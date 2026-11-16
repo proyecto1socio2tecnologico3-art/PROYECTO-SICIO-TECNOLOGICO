@@ -1291,38 +1291,6 @@ const MAX_LINKS_PER_CONTENT = 20;
             actualizarEnlaceBiblioteca();
         }
 
-     /*   function renderizarSubMateriasGrado(campoGrado) {
-            const grid = document.getElementById('subMateriasGrid');
-            grid.innerHTML = '';
-            if (!campoGrado.materias || campoGrado.materias.length === 0) {
-                grid.innerHTML = '<p style="color:#777; font-style:italic;">No hay materias creadas en este año escolar.</p>';
-                return;
-            }
-
-            campoGrado.materias.forEach((mat, mIdx) => {
-                const card = document.createElement('div');
-                card.className = 'info-card';
-                let admTxt = mat.adminAsignado ? `<br><small style="color:var(--admin-color);">👤 Admin: ${mat.adminAsignado}</small>` : '';
-
-                card.innerHTML = `
-                    <h3>${mat.titulo}</h3>
-                    <p>${mat.resumen}</p>
-                    <small style="color:var(--dark-blue); font-weight:bold;">Entrar a Materia →</small>
-                    ${admTxt}
-                `;
-
-                if (rolSesionActiva === 'superadmin' && !mat.adminAsignado) {
-                    card.innerHTML += `
-                        <div class="card-admin-actions" onclick="event.stopPropagation()">
-                            <button class="btn-card-delete" onclick="eliminarSubMateria(${mIdx})">Eliminar Materia</button>
-                        </div>
-                    `;
-                }
-                card.onclick = () => abrirCampo(campoActualIndex, mIdx);
-                grid.appendChild(card);
-            });
-        } */
-
         function renderizarSubMateriasGrado(campoGrado) {
             const grid = document.getElementById('subMateriasGrid');
             grid.innerHTML = '';
@@ -1767,15 +1735,6 @@ const MAX_LINKS_PER_CONTENT = 20;
             document.getElementById('campoBodyText').innerText = contenido;
             alert('Contenido teórico guardado.');
         }
-
-     /*   function eliminarSubMateria(mIdx) {
-            if (confirm('¿Eliminar esta materia del grado?')) {
-                let camposBD = obtenerCamposBD();
-                camposBD.grados[campoActualIndex].materias.splice(mIdx, 1);
-                guardarCamposBD(camposBD);
-                abrirCampo(campoActualIndex, null);
-            }
-        }*/
                 
          function eliminarSubMateria(mIdx) {
             let camposBD = obtenerCamposBD();

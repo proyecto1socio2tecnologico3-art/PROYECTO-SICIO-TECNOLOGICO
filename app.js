@@ -1291,7 +1291,7 @@ const MAX_LINKS_PER_CONTENT = 20;
             actualizarEnlaceBiblioteca();
         }
 
-        function renderizarSubMateriasGrado(campoGrado) {
+     /*   function renderizarSubMateriasGrado(campoGrado) {
             const grid = document.getElementById('subMateriasGrid');
             grid.innerHTML = '';
             if (!campoGrado.materias || campoGrado.materias.length === 0) {
@@ -1321,7 +1321,40 @@ const MAX_LINKS_PER_CONTENT = 20;
                 card.onclick = () => abrirCampo(campoActualIndex, mIdx);
                 grid.appendChild(card);
             });
-        }
+        } */
+
+        function renderizarSubMateriasGrado(campoGrado) {
+            const grid = document.getElementById('subMateriasGrid');
+            grid.innerHTML = '';
+            if (!campoGrado.materias || campoGrado.materias.length === 0) {
+                grid.innerHTML = '<p style="color:#777; font-style:italic;">No hay materias creadas en este año escolar.</p>';
+                return;
+            }
+
+            campoGrado.materias.forEach((mat, mIdx) => {
+                const card = document.createElement('div');
+                card.className = 'info-card';
+                let admTxt = mat.adminAsignado ? `<br><small style="color:var(--admin-color);">👤 Admin: ${mat.adminAsignado}</small>` : '';
+
+                card.innerHTML = `
+                    <h3>${mat.titulo}</h3>
+                    <p>${mat.resumen}</p>
+                    <small style="color:var(--dark-blue); font-weight:bold;">Entrar a Materia →</small>
+                    ${admTxt}
+                `;
+
+                // Permite mostrar el botón de eliminar si el admin menor es dueño de la materia o si es superadmin y está libre
+                if (esAdminConPermisoDeEdicion(mat) || (rolSesionActiva === 'superadmin' && !mat.adminAsignado)) {
+                    card.innerHTML += `
+                        <div class="card-admin-actions" onclick="event.stopPropagation()">
+                            <button class="btn-card-delete" onclick="eliminarSubMateria(${mIdx})">Eliminar Materia</button>
+                        </div>
+                    `;
+                }
+                card.onclick = () => abrirCampo(campoActualIndex, mIdx);
+                grid.appendChild(card);
+            });
+        }    //correccion 1 sobre materia //
 
         function insertarTextoArticulo(contenedor, texto) {
             const partes = texto.split(/\*\*([^*]+)\*\*/g);
@@ -1735,14 +1768,32 @@ const MAX_LINKS_PER_CONTENT = 20;
             alert('Contenido teórico guardado.');
         }
 
-        function eliminarSubMateria(mIdx) {
+     /*   function eliminarSubMateria(mIdx) {
             if (confirm('¿Eliminar esta materia del grado?')) {
                 let camposBD = obtenerCamposBD();
                 camposBD.grados[campoActualIndex].materias.splice(mIdx, 1);
                 guardarCamposBD(camposBD);
                 abrirCampo(campoActualIndex, null);
             }
-        }
+        }*/
+                
+         function eliminarSubMateria(mIdx) {
+            let camposBD = obtenerCamposBD();
+            let gradoObj = camposBD.grados[campoActualIndex];
+            let mat = gradoObj.materias[mIdx];
+            if (!mat) return;
+
+            if (!esAdminConPermisoDeEdicion(mat) && !(rolSesionActiva === 'superadmin' && !mat.adminAsignado)) {
+                alert('No tienes permiso para eliminar esta materia.');
+                return;
+            }
+
+            if (confirm('¿Eliminar esta materia del grado?')) {
+                gradoObj.materias.splice(mIdx, 1);
+                guardarCamposBD(camposBD);
+                abrirCampo(campoActualIndex, null);
+            }
+        } // correcion 2 sobre materia //        
 
         function publicarArticuloEstructurado() {
             const tituloMain = document.getElementById('artInputTitleMain').value.trim();
